@@ -7,7 +7,7 @@ from functools import wraps
 from models import db, Employee, Attendance, Admin
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///qr_attendance.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:akshata18@localhost:3306/qr_attendance'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 db.init_app(app)
