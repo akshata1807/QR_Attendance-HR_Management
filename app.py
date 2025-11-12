@@ -7,9 +7,9 @@ from functools import wraps
 from models import db, Employee, Attendance, Admin
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:akshata18@localhost:3306/qr_attendance'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql+pymysql://root:akshata18@localhost:3306/qr_attendance')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-here'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 db.init_app(app)
 
 def admin_required(f):
