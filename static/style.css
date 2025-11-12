@@ -52,8 +52,11 @@ body {
   color: #fff !important;
   font-size: 18px;
 }
-@media (max-width: 575px) {
-  .custom-card { padding: 1rem;}
+@media (max-width: 576px) {
+  .custom-card {
+    padding: 1rem !important;
+    margin: 1rem;
+  }
 }
 
 @media (max-width: 767px) {
