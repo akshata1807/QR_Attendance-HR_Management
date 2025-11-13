@@ -7,10 +7,13 @@ from functools import wraps
 from models import db, Employee, Attendance, Admin
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql+pymysql://root:akshata18@localhost:3306/qr_attendance')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///c:/Users/aksha/OneDrive/Desktop/qr_attendance_system/instance/qr_attendance.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 def admin_required(f):
     @wraps(f)
@@ -246,7 +249,6 @@ def download_salary_sheet():
     output = "\n".join([",".join(map(str,row)) for row in data_rows])
     return Response(output, mimetype='text/csv', headers={"Content-Disposition":"attachment;filename=salary_sheet.csv"})
 
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Create tables
     app.run(debug=True)
