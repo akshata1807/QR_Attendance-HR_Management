@@ -7,17 +7,10 @@ from functools import wraps
 from models import db, Employee, Attendance, Admin
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///c:/Users/aksha/OneDrive/Desktop/qr_attendance_system/instance/qr_attendance.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql+pymysql://root:akshata18@localhost:3306/qr_attendance')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 db.init_app(app)
 
-with app.app_context():
-    try:
-        db.create_all()
-    except Exception as e:
-        print(f"Database creation failed: {e}")
-        pass
 
 def admin_required(f):
     @wraps(f)
@@ -255,4 +248,6 @@ def download_salary_sheet():
 
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()  # Create tables
     app.run(debug=True)
