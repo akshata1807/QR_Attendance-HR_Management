@@ -34,10 +34,13 @@
     <div class="row justify-content-center">
       <div class="col-12 col-md-10 col-lg-8 custom-card">
         <h2 class="page-title text-center">Admin Dashboard - Employees</h2>
-        <form method="GET" action="/download_salary_sheet" class="d-inline mb-3">
-          <input type="hidden" name="month" value="{{ current_month }}">
-          <button type="submit" class="btn btn-success btn-sm">Download Salary Sheet</button>
-        </form>
+        <div class="mb-3">
+          <a href="/admin_register" class="btn btn-primary">Register New Admin</a>
+          <form method="GET" action="/download_salary_sheet" class="d-inline">
+            <input type="hidden" name="month" value="{{ current_month }}">
+            <button type="submit" class="btn btn-success btn-sm">Download Salary Sheet</button>
+          </form>
+        </div>
         <div class="table-responsive">
           <table class="table table-custom table-striped mt-3">
              <thead>

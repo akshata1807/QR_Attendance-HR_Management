@@ -7,8 +7,10 @@ from functools import wraps
 from models import db, Employee, Attendance, Admin
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/qr_attendance.db')
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+app.config["SQLALCHEMY_DATABASE_URI"] = \
+    "postgresql://postgres:1234@localhost:5432/qr_attendance_db"
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '2e6442d5ad6417606b868f8294d71521 ')
 db.init_app(app)
 
 
@@ -90,7 +92,7 @@ def admin_register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        confirm  = request.form['confirm']
+        confirm = request.form['confirm']
         if password != confirm:
             error = 'Passwords do not match.'
         elif Admin.query.filter_by(username=username).first():
@@ -215,39 +217,63 @@ def export_csv():
 @app.route('/salary')
 @admin_required
 def salary():
-    from sqlalchemy import func
+    from sqlalchemy import func, extract
+
     emp_code = request.args.get('emp_code', '')
     month = request.args.get('month', '')  # format 'YYYY-MM'
     employee = Employee.query.filter_by(emp_code=emp_code).first()
+
     if not employee:
         return "Employee not found"
-    # Correct DISTINCT day calculation!
-    days_worked = db.session.query(func.count(func.distinct(Attendance.date))).filter(
+
+    year, month_num = month.split("-")
+
+    days_worked = db.session.query(
+        func.count(func.distinct(Attendance.date))
+    ).filter(
         Attendance.emp_code == emp_code,
-        Attendance.date.like(f"{month}%")
+        extract('year', Attendance.date) == int(year),
+        extract('month', Attendance.date) == int(month_num)
     ).scalar()
+
     total_salary = days_worked * employee.daily_salary
-    return render_template('salary.html', emp=employee, days_worked=days_worked, total_salary=total_salary, month=month)
+
+    return render_template('salary.html',
+                           emp=employee,
+                           days_worked=days_worked,
+                           total_salary=total_salary,
+                           month=month)
+
 
 @app.route('/download_salary_sheet')
 @admin_required
 def download_salary_sheet():
-    from sqlalchemy import func
+    from sqlalchemy import func, extract
+
     month = request.args.get('month', '')
+    year, month_num = month.split("-")
+
     employees = Employee.query.all()
     data_rows = [['Emp_Code', 'Name', 'Days_Worked', 'Daily_Salary', 'Total_Salary']]
+
     for e in employees:
-        days_worked = db.session.query(func.count(func.distinct(Attendance.date))).filter(
-            Attendance.emp_code==e.emp_code,
-            Attendance.date.like(f"{month}%")
+        days_worked = db.session.query(
+            func.count(func.distinct(Attendance.date))
+        ).filter(
+            Attendance.emp_code == e.emp_code,
+            extract('year', Attendance.date) == int(year),
+            extract('month', Attendance.date) == int(month_num)
         ).scalar()
+
         total_salary = days_worked * e.daily_salary
         data_rows.append([e.emp_code, e.name, days_worked, e.daily_salary, total_salary])
-    output = "\n".join([",".join(map(str,row)) for row in data_rows])
-    return Response(output, mimetype='text/csv', headers={"Content-Disposition":"attachment;filename=salary_sheet.csv"})
 
+    output = "\n".join([",".join(map(str, row)) for row in data_rows])
 
+    return Response(output,
+                    mimetype='text/csv',
+                    headers={"Content-Disposition": "attachment;filename=salary_sheet.csv"})
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Create tables
-    app.run(debug=True)
+        db.create_all()
+    app.run()
