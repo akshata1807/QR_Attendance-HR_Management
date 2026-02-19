@@ -8,16 +8,13 @@ from models import db, Employee, Attendance, Admin
 
 app = Flask(__name__)
 
-# Get database URL from environment (Railway provides DATABASE_URL)
-database_url = os.environ.get('DATABASE_URL')
-if database_url:
-    # Railway provides postgres:// but SQLAlchemy needs postgresql://
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-else:
-    # Fallback to local database
-    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:1234@localhost:5432/qr_attendance_db"
+# Railway provides DATABASE_URL environment variable
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '2e6442d5ad6417606b868f8294d71521 ')
 db.init_app(app)
