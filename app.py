@@ -19,6 +19,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '2e6442d5ad6417606b868f8294d71521 ')
 db.init_app(app)
 
+# Create tables when app starts (works with gunicorn on Railway)
+with app.app_context():
+    db.create_all()
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -279,8 +283,5 @@ def download_salary_sheet():
                     mimetype='text/csv',
                     headers={"Content-Disposition": "attachment;filename=salary_sheet.csv"})
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    # Railway provides the PORT environment variable
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
