@@ -7,12 +7,20 @@ from functools import wraps
 from models import db, Employee, Attendance, Admin
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = \
-    "postgresql://postgres:1234@localhost:5432/qr_attendance_db"
+
+# Get database URL from environment (Railway provides DATABASE_URL)
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Railway provides postgres:// but SQLAlchemy needs postgresql://
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+else:
+    # Fallback to local database
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:1234@localhost:5432/qr_attendance_db"
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '2e6442d5ad6417606b868f8294d71521 ')
 db.init_app(app)
-
 
 def admin_required(f):
     @wraps(f)
@@ -276,4 +284,6 @@ def download_salary_sheet():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run()
+    # Railway provides the PORT environment variable
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
